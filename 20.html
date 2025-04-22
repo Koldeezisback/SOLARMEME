@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Galaxy X Explosion</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        #space-background {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=2048&q=80') center/cover no-repeat;
+            animation: parallax 60s infinite linear;
+            opacity: 0.7;
+        }
+
+        .nebula {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center,
+                rgba(88, 101, 242, 0.1) 0%,
+                rgba(155, 89, 182, 0.1) 50%,
+                transparent 70%);
+            animation: nebulaGlow 10s infinite alternate;
+            pointer-events: none;
+        }
+
+        #title-container {
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #title {
+            font-size: 4em;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(88, 101, 242, 0.7),
+                         0 0 20px rgba(88, 101, 242, 0.5);
+            font-weight: 700;
+            letter-spacing: 4px;
+            background: linear-gradient(45deg, #5865F2, #9B59B6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleGlow 2s infinite alternate;
+            margin: 0;
+        }
+
+        #soon {
+            font-size: 2em;
+            color: #fff;
+            margin-top: 10px;
+            text-shadow: 0 0 15px rgba(123, 104, 238, 0.8);
+            letter-spacing: 8px;
+            animation: soonGlow 1.5s infinite alternate;
+        }
+
+        #twitterX {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #000000;
+            border: 2px solid #ffffff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #twitterX img {
+            width: 35px;
+            height: 35px;
+            filter: brightness(0) invert(1);
+        }
+
+        #twitterX:hover {
+            background: #1A1A1A;
+            transform: scale(1.1);
+        }
+
+        #dexButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: #000000;
+            border: 2px solid #ffffff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #dexButton img {
+            width: 35px;
+            height: 35px;
+            filter: invert(1);
+        }
+
+        #dexButton:hover {
+            background: #1A1A1A;
+            transform: scale(1.1);
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px 50px;
+            border-radius: 15px;
+            border: 2px solid #7B68EE;
+            box-shadow: 0 0 30px rgba(123, 104, 238, 0.5);
+            z-index: 10000;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            backdrop-filter: blur(8px);
+        }
+
+        .popup.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .popup p {
+            color: white;
+            font-size: 24px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 9999;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+        }
+
+        #startButton {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 20px 60px;
+            font-size: 24px;
+            background: linear-gradient(45deg, #7B68EE, #9370DB);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(123, 104, 238, 0.5);
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        #startButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.4),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        #startButton:hover::before {
+            left: 100%;
+        }
+
+        #startButton:hover {
+            transform: translateX(-50%) scale(1.05);
+            background: linear-gradient(45deg, #9370DB, #7B68EE);
+            box-shadow: 0 0 50px rgba(123, 104, 238, 0.8);
+        }
+
+        .meme {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        .meme.active {
+            opacity: 1;
+            transform: scale(1);
+            transition: none;
+            animation: chaosMove 4s infinite;
+        }
+
+        @keyframes soonGlow {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        @keyframes chaosMove {
+            0%, 100% {
+                transform: translate(var(--x1), var(--y1)) rotate(0deg) scale(var(--scale1));
+            }
+            25% {
+                transform: translate(var(--x2), var(--y2)) rotate(180deg) scale(var(--scale2));
+            }
+            50% {
+                transform: translate(var(--x3), var(--y3)) rotate(360deg) scale(var(--scale3));
+            }
+            75% {
+                transform: translate(var(--x4), var(--y4)) rotate(540deg) scale(var(--scale4));
+            }
+        }
+
+        @keyframes parallax {
+            from { background-position: 0 0; }
+            to { background-position: 100% 100%; }
+        }
+
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 10px rgba(88, 101, 242, 0.7); }
+            to { text-shadow: 0 0 30px rgba(88, 101, 242, 0.9); }
+        }
+
+        @keyframes nebulaGlow {
+            from { opacity: 0.3; }
+            to { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div id="space-background"></div>
+    <div class="nebula"></div>
+    <div id="title-container">
+        <h1 id="title">SOLAR MEME</h1>
+        <div id="soon">CA : SOON</div>
+    </div>
+
+    <!-- Bouton DEX -->
+    <div id="dexButton">
+        <img src="https://files.raycast.com/f5wu4ooxi93bfppdavik5mwzxbtm" alt="DEX Logo">
+    </div>
+
+    <!-- Pop-up overlay -->
+    <div class="popup-overlay" id="popupOverlay"></div>
+
+    <!-- Pop-up DEX -->
+    <div class="popup" id="dexPopup">
+        <span class="popup-close">&times;</span>
+        <p>DEX paid at 25,000$ Mcap</p>
+    </div>
+
+    <!-- Bouton Twitter X avec lien -->
+    <a href="https://x.com/i/communities/1914746112235434189/" target="_blank" style="text-decoration: none;">
+        <div id="twitterX">
+            <img src="https://img.freepik.com/vecteurs-libre/nouveau-logo-twitter-2023-x-fond-blanc-vecteur_1017-45422.jpg?semt=ais_hybrid&w=740" alt="X Logo">
+        </div>
+    </a>
+
+    <div id="universe"></div>
+    <button id="startButton">Do the shake</button>
+    <audio id="shakeAudio" src="C:/Users/BUYMORE/Desktop/BOT/Visa/HGOTYOURBACK/meme coin/DO THE HARLEM SHAKE (ORIGINAL).mp3"></audio>
+
+    <script>
+        // Configuration Three.js
+        const scene = new THREE.Scene();
+        scene.background = null;
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            alpha: true, 
+            antialias: true,
+            logarithmicDepthBuffer: true 
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x000000, 0);
+        document.getElementById('universe').appendChild(renderer.domElement);
+
+        // Création de la Terre
+        const earthGeometry = new THREE.SphereGeometry(2, 64, 64);
+        const textureLoader = new THREE.TextureLoader();
+        
+        const earthTexture = textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+        const earthBumpMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_normal_2048.jpg');
+        const cloudsTexture = textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png');
+
+        // Sphère noire de fond
+        const backSphereGeometry = new THREE.SphereGeometry(1.99, 64, 64);
+        const backSphereMaterial = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            side: THREE.FrontSide
+        });
+        const backSphere = new THREE.Mesh(backSphereGeometry, backSphereMaterial);
+
+        // Matériau de la Terre
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: earthTexture,
+            bumpMap: earthBumpMap,
+            bumpScale: 0.8,
+            specular: new THREE.Color(0x333333),
+            shininess: 25
+        });
+
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        earth.add(backSphere);
+
+        // Nuages
+        const earthWithClouds = new THREE.Mesh(
+            new THREE.SphereGeometry(2.001, 64, 64),
+            new THREE.MeshLambertMaterial({
+                map: cloudsTexture,
+                transparent: true,
+                opacity: 0.3,
+                blending: THREE.AdditiveBlending
+            })
+        );
+        earth.add(earthWithClouds);
+
+        // Éclairage renforcé
+        const mainLight = new THREE.DirectionalLight(0xffffff, 2);
+        mainLight.position.set(5, 3, 5);
+        scene.add(mainLight);
+
+        const frontLight = new THREE.DirectionalLight(0xffffff, 1);
+        frontLight.position.set(0, 0, 5);
+        scene.add(frontLight);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        scene.add(earth);
+        camera.position.z = 6;
+
+        // Liste des memes avec les nouvelles URLs
+        const memes = [
+            'https://dogecoin.com/assets/images/doge.svg',
+            'https://coin-images.coingecko.com/coins/images/29850/large/pepe-token.jpeg?1696528776',
+            'https://wallpapercave.com/wp/wp9917275.jpg',
+            'https://coin-images.coingecko.com/coins/images/51942/large/grumpy_cat.png?1732211951',
+            'https://i.imgflip.com/7b03ba.jpg'
+        ];
+
+        function createMeme(imageUrl) {
+            const meme = document.createElement('div');
+            meme.className = 'meme';
+            meme.style.backgroundImage = `url(${imageUrl})`;
+            document.body.appendChild(meme);
+
+            const setRandomPositions = () => {
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                for (let i = 1; i <= 4; i++) {
+                    meme.style.setProperty(`--x${i}`, `${Math.random() * viewportWidth - viewportWidth/2}px`);
+                    meme.style.setProperty(`--y${i}`, `${Math.random() * viewportHeight - viewportHeight/2}px`);
+                    meme.style.setProperty(`--scale${i}`, `${Math.random() * 1.5 + 0.5}`);
+                }
+            };
+
+            const earthPos = renderer.domElement.getBoundingClientRect();
+            meme.style.left = `${earthPos.left + earthPos.width/2}px`;
+            meme.style.top = `${earthPos.top + earthPos.height/2}px`;
+
+            setRandomPositions();
+            setInterval(setRandomPositions, 4000);
+
+            return meme;
+        }
+
+        // Animation principale
+        function animate() {
+            requestAnimationFrame(animate);
+            earth.rotation.y += 0.002;
+            earthWithClouds.rotation.y += 0.0025;
+            renderer.render(scene, camera);
+        }
+
+        // Gestion du redimensionnement
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize);
+
+        // Gestion du bouton et de l'audio
+        const startButton = document.getElementById('startButton');
+        const audio = document.getElementById('shakeAudio');
+        
+        startButton.addEventListener('click', () => {
+            audio.play();
+            startButton.style.transform = 'translateX(-50%) scale(0.95)';
+            startButton.style.boxShadow = '0 0 100px rgba(123, 104, 238, 0.8)';
+            
+            let intensity = 0;
+            const maxIntensity = 0.3;
+            const shakeInterval = setInterval(() => {
+                intensity = Math.min(intensity + 0.01, maxIntensity);
+                earth.position.x = (Math.random() - 0.5) * intensity;
+                earth.position.y = (Math.random() - 0.5) * intensity;
+                earth.rotation.z += (Math.random() - 0.5) * 0.02;
+                
+                const scale = 1 + Math.sin(Date.now() * 0.01) * 0.05;
+                earth.scale.set(scale, scale, scale);
+            }, 50);
+
+            setTimeout(() => {
+                clearInterval(shakeInterval);
+                earth.position.set(0, 0, 0);
+                earth.rotation.z = 0;
+                earth.scale.set(1, 1, 1);
+
+                memes.forEach((memeUrl, index) => {
+                    setTimeout(() => {
+                        const meme = createMeme(memeUrl);
+                        meme.classList.add('active');
+                    }, index * 200);
+                });
+            }, 13000);
+
+            startButton.disabled = true;
+            startButton.style.opacity = '0.7';
+        });
+
+        // Gestion du popup DEX
+        const dexButton = document.getElementById('dexButton');
+        const dexPopup = document.getElementById('dexPopup');
+        const popupOverlay = document.getElementById('popupOverlay');
+        const popupClose = document.querySelector('.popup-close');
+
+        dexButton.addEventListener('click', () => {
+            popupOverlay.style.display = 'block';
+            setTimeout(() => {
+                popupOverlay.classList.add('active');
+                dexPopup.style.display = 'block';
+                setTimeout(() => {
+                    dexPopup.classList.add('active');
+                }, 10);
+            }, 10);
+        });
+
+        function closePopup() {
+            dexPopup.classList.remove('active');
+            popupOverlay.classList.remove('active');
+            setTimeout(() => {
+                dexPopup.style.display = 'none';
+                popupOverlay.style.display = 'none';
+            }, 300);
+        }
+
+        popupClose.addEventListener('click', closePopup);
+        popupOverlay.addEventListener('click', (e) => {
+            if (e.target === popupOverlay) {
+                closePopup();
+            }
+        });
+
+        // Fermer le popup avec la touche Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dexPopup.style.display === 'block') {
+                closePopup();
+            }
+        });
+
+        // Démarrage
+        onWindowResize();
+        animate();
+    </script>
+</body>
+</html>
